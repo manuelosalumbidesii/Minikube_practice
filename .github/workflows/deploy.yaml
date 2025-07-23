@@ -1,4 +1,4 @@
-name: CI/CD - Build and Push #sfsd
+name: CI/CD - Build and Push
 
 on:
   push:
@@ -49,3 +49,17 @@ jobs:
 
       - name: 🚀 Push to GHCR
         run: docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/hello-minikube:latest
+
+  notify:
+    needs: build-and-push  # 👈 only runs after the main job
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📢 Send Slack notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: '#36a64f'
+          SLACK_MESSAGE: '✅ Deployment succeeded!'
+          SLACK_TITLE: 'Deployment Status'
+          SLACK_ICON: 'https://example.com/success-icon.png'
+          
