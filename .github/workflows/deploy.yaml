@@ -50,16 +50,28 @@ jobs:
       - name: 🚀 Push to GHCR
         run: docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/hello-minikube:latest
 
-  notify:
-    needs: build-and-push  # 👈 only runs after the main job
+  slack-notify-qa:
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: 📢 Send Slack notification
+      - name: 📢 Send Slack notification for QA approval
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_COLOR: '#36a64f'
-          SLACK_MESSAGE: '✅ Deployment succeeded!'
-          SLACK_TITLE: 'Deployment Status'
-          SLACK_ICON: 'https://example.com/success-icon.png'
-          
+          SLACK_COLOR: '#ffcc00'
+          SLACK_MESSAGE: |
+            🧪 Build and push completed.
+            🔒 Waiting for QA approval to deploy to production.
+            👉 Approve deployment here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SLACK_TITLE: 'Awaiting QA Approval'
+
+  deploy-to-prod:
+    needs: slack-notify-qa
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://your-production-url.com
+    steps:
+      - name: 🏁 Final production deployment step
+        run: echo "🚀 Deploying to production..."
+      
