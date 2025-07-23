@@ -1,0 +1,51 @@
+name: CI/CD - Build and Push #sfsd
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: ✅ Run unit tests (backend)
+        run: |
+          cd backend
+          python -m unittest discover
+
+      - name: 🧹 Run linting (backend)
+        run: |
+          cd backend
+          pip install flake8
+          flake8 .
+
+      - name: 🐳 Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: 🐙 Log in to GHCR
+        run: echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
+      - name: 🏗️ Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/hello-minikube:latest ./backend
+          docker tag ${{ secrets.DOCKER_USERNAME }}/hello-minikube:latest ghcr.io/${{ secrets.GHCR_USERNAME }}/hello-minikube:latest
+
+      - name: 🚀 Push to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/hello-minikube:latest
+
+      - name: 🚀 Push to GHCR
+        run: docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/hello-minikube:latest
