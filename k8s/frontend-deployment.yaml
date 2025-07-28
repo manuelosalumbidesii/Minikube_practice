@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: frontend-notes:latest
+        image: frontend-app:v2
         imagePullPolicy: Never
         ports:
         - containerPort: 5000
