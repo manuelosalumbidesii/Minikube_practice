@@ -4,14 +4,19 @@ from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 app = Flask(__name__)
 notes = []
 
-# Prometheus metrics
-REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP Requests', ['method', 'endpoint'])
+REQUEST_COUNT = Counter(
+    'http_requests_total',
+    'Total HTTP Requests',
+    ['method', 'endpoint']
+)
 NOTES_ADDED = Counter('notes_added_total', 'Total notes added')
 NOTES_DELETED = Counter('notes_deleted_total', 'Total notes deleted')
+
 
 @app.before_request
 def before_request():
     REQUEST_COUNT.labels(method=request.method, endpoint=request.path).inc()
+
 
 @app.route("/notes", methods=["GET"])
 def get_notes():
@@ -36,10 +41,11 @@ def delete_note(index):
     except IndexError:
         return jsonify({"error": "Invalid index"}), 400
 
-# Prometheus /metrics endpoint
+
 @app.route("/metrics")
 def metrics():
     return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
