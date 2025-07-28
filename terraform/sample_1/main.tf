@@ -11,7 +11,7 @@ resource "aws_s3_bucket" "uploads" {
   force_destroy = true
 }
 
-# 2. IAM Policy for S3 Access
+
 resource "aws_iam_policy" "s3_access" {
   name = "ecs-s3-access"
   policy = jsonencode({
